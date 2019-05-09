@@ -9,60 +9,14 @@ from django.http import HttpResponse
 from django.conf import settings
 
 from .models import User
+from utils.mixin import LoginRequiredMixin
 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired
 
+
 # Create your views here.
-
-
 # /user/register
-def register(request):
-
-    if request.method == 'GET':
-        return render(request, 'register.html')
-    else:
-        # 1.接收注册相关数据
-        username = request.POST.get('user_name')
-        password = request.POST.get('pwd')
-        email = request.POST.get('email')
-        allow = request.POST.get('allow')
-
-        # 2.判断数据是否合法,数据检验
-        if not all([username, password, email]):
-            # 数据不完整
-            return render(request, 'register.html', {'errmsg': '数据不完整'})
-
-        # 检验邮箱
-        if not re.match(r'^[a-z0-9][\w\.\-]*@[a-z0-9\-]+(\.[a-z]{2,5}){1,2}$', email):
-            return render(request, 'register.html', {'errmsg': '邮箱格式不正确'})
-
-        if allow != 'on':
-            return render(request, 'register.html', {'errmsg': '请同意协议'})
-
-        # 检验用户名是否重复
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            user = None
-
-        if user:
-            # 用户名存在
-            return render(request, 'register.html', {'errmsg': '用户名已经存在'})
-
-        # 3.进行业务处理
-        user = User.objects.create_user(username, email, password)
-        user.is_active = 0  # 默认为不激活状态
-        user.save()
-        # 返回应答,跳转到首页
-        return redirect(reverse('goods:index'))
-
-
-def register_handle(request):
-    '''进行注册处理'''
-    pass
-
-
 class RegisterView(View):
 
     def get(self, request):
@@ -156,7 +110,7 @@ class LoginView(View):
             username = ''
             checked = ''
 
-        return render(request, 'login.html', {'username':username, 'checked':checked})
+        return render(request, 'login.html', {'username': username, 'checked': checked})
 
     def post(self, request):
         '''登录校验'''
@@ -174,9 +128,9 @@ class LoginView(View):
         if user is not None:
             if user.is_active:
                 login(request, user) # 记录用户登录状态
-
-                # 到首页
-                response = redirect(reverse('goods:index'))
+                next_url = request.GET.get('next', reverse('goods:index'))
+                # 默认到首页
+                response = redirect(next_url)
 
                 remember = request.POST.get('remember')
                 if remember == 'on':
@@ -187,7 +141,30 @@ class LoginView(View):
                 return response
 
             else:
-                return render(request, 'login.html', {'errmsg':'用户未激活'})
+                return render(request, 'login.html', {'errmsg': '用户未激活'})
         else:
-            return render(request, 'login.html', {'errmsg':'用户名或密码不正确'})
+            return render(request, 'login.html', {'errmsg': '用户名或密码不正确'})
 
+
+# /user
+class UserInfoView(LoginRequiredMixin, View):
+
+    def get(self, request):
+        # page='user'
+        return render(request, 'user_center_info.html', {'page': 'user'})
+
+
+# /user/order
+class UserOrderView(LoginRequiredMixin, View):
+
+    def get(self, request):
+        # page=order
+        return render(request, 'user_center_order.html', {'page': 'order'})
+
+
+# /user/address
+class UserAddressView(LoginRequiredMixin, View):
+
+    def get(self, reuqest):
+        # page=address
+        return render(reuqest, 'user_center_site.html', {'page': 'address'})
