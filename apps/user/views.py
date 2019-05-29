@@ -1,14 +1,16 @@
 import re
 
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.views.generic import View
 from django.core.urlresolvers import reverse
 from django.core.mail import send_mail
 from django.http import HttpResponse
 from django.conf import settings
+from django_redis import get_redis_connection
 
-from .models import User
+from .models import User,Address
+from goods.models import GoodsSKU
 from utils.mixin import LoginRequiredMixin
 
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -146,12 +148,49 @@ class LoginView(View):
             return render(request, 'login.html', {'errmsg': '用户名或密码不正确'})
 
 
+# /user/logout
+class LogoutView(View):
+    # 退出登录
+    def get(self, request):
+        # 清除session信息
+        logout(request)
+        # 跳转
+        return redirect(reverse('goods:index'))
+
+
 # /user
 class UserInfoView(LoginRequiredMixin, View):
 
     def get(self, request):
         # page='user'
-        return render(request, 'user_center_info.html', {'page': 'user'})
+
+        # 用户信息
+        user = request.user
+        address = Address.objects.get_default_address(user)
+
+        # 用户的最近浏览
+        conn = get_redis_connection('default')
+
+        history_key = 'hestory_%d' % user.id
+
+        # 获取用户最新浏览的5个商品的id
+        sku_ids = conn.lrange(history_key, 0, 4)
+
+        # 从数据库中查询用户的浏览商品的具体信息
+        goods_li = GoodsSKU.objects.filter(id__in=sku_ids)
+
+        goods_res = []
+        for a_id in sku_ids:
+            for goods in goods_li:
+                if a_id == goods.id:
+                    goods_res.append(goods)
+
+        context = {
+            'page': 'user',
+            'address': address,
+        }
+
+        return render(request, 'user_center_info.html', context)
 
 
 # /user/order
@@ -159,6 +198,9 @@ class UserOrderView(LoginRequiredMixin, View):
 
     def get(self, request):
         # page=order
+
+        # 用户的订单信息
+
         return render(request, 'user_center_order.html', {'page': 'order'})
 
 
@@ -167,4 +209,52 @@ class UserAddressView(LoginRequiredMixin, View):
 
     def get(self, reuqest):
         # page=address
-        return render(reuqest, 'user_center_site.html', {'page': 'address'})
+
+        # 获取用户默认收货地址
+        user = reuqest.user
+        # try:
+        #     address = Address.objects.get(user=user, is_default=True)
+        # except Address.DoesNotExist:
+        #     address = None
+        address = Address.objects.get_default_address(user)
+
+        return render(reuqest, 'user_center_site.html', {'page': 'address', 'address': address})
+
+    def post(self, request):
+        # 获取地址信息
+        receiver = request.POST.get('receiver')
+        addr = request.POST.get('address')
+        zip_code = request.POST.get('zip_code')
+        phone = request.POST.get('phone')
+        # 校验信息
+        if not all([receiver, addr, phone]):
+            return render(request, 'user_center_site.html', {'errmsg': '数据不完整'})
+
+        # 校验手机号
+        if not re.match(r'^1[3|4|5|7|8][0-9]{9}$', phone):
+            return render(request, 'user_center_site.html', {'errmsg': '手机格式不正确'})
+
+        # 业务处理和数据存储
+        # 获取登录用户的user对象
+        user = request.user
+        # try:
+        #     address = Address.objects.get(user=user, is_default=True)  # models.Manager
+        # except Address.DoesNotExist:
+        #     address = None
+        address = Address.objects.get_default_address(user)
+
+        if address:
+            is_default = False
+        else:
+            is_default = True
+
+        # 添加地址
+        Address.objects.create(user=user,
+                               receiver=receiver,
+                               addr=addr,
+                               zip_code=zip_code,
+                               phone=phone,
+                               is_default=is_default)
+        # 返回应答,刷新地址页面
+        return redirect(reverse('user:address'))  # get请求方式
+
