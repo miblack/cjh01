@@ -9,7 +9,7 @@ from django.http import HttpResponse
 from django.conf import settings
 from django_redis import get_redis_connection
 
-from .models import User,Address
+from .models import User, Address
 from goods.models import GoodsSKU
 from utils.mixin import LoginRequiredMixin
 
@@ -188,6 +188,7 @@ class UserInfoView(LoginRequiredMixin, View):
         context = {
             'page': 'user',
             'address': address,
+            'goods_li': goods_li,
         }
 
         return render(request, 'user_center_info.html', context)

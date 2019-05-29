@@ -55,9 +55,6 @@ class GoodsSKU(BaseModel):
         verbose_name_plural = verbose_name
 
 
-
-
-
 class GoodsImage(BaseModel):
     '''商品图片模型类'''
     sku = models.ForeignKey('GoodsSKU', verbose_name='商品', on_delete=models.CASCADE)
