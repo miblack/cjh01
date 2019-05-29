@@ -149,3 +149,9 @@ SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 
 LOGIN_URL = '/user/login'
+
+# 设置Django的默认存储类
+DEFAULT_FILE_STORAGE = "utils.fdfs.storage.FDFSStorage"
+
+FDFS_CLIENT_CONF = './utils/fdfs/client.conf'
+FDFS_URL = 'http://192.168.254.134:8080/'
