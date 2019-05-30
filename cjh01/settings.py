@@ -154,4 +154,4 @@ LOGIN_URL = '/user/login'
 DEFAULT_FILE_STORAGE = "utils.fdfs.storage.FDFSStorage"
 
 FDFS_CLIENT_CONF = './utils/fdfs/client.conf'
-FDFS_URL = 'http://192.168.254.134:8080/'
+FDFS_URL = 'http://192.168.245.134:8080/'
