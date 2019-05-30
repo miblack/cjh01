@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.core.cache import cache
 
 from .models import GoodsType, IndexPromotionBanner,GoodsImage, IndexGoodsBanner, IndexTypeGoodsBanner, GoodsSKU, Goods
 # Register your models here.
@@ -12,11 +13,15 @@ class BaseAdmin(admin.ModelAdmin):
         from celery_tasks.tasks import save_static_html
         save_static_html.delay()
 
+        cache.delete('index_page_data')
+
     def delete_model(self, request, obj):
         super().delete_model(request, obj)
 
         from celery_tasks.tasks import save_static_html
         save_static_html.delay()
+
+        cache.delete('index_page_data')
 
 
 admin.site.register(GoodsType)
