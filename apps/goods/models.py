@@ -2,8 +2,6 @@ from django.db import models
 from db.base_model import BaseModel
 from tinymce.models import HTMLField
 
-# Create your models here.
-
 
 class GoodsType(BaseModel):
     '''商品类型模型类'''
@@ -23,12 +21,15 @@ class GoodsType(BaseModel):
 class Goods(BaseModel):
     '''商品SPU模型类'''
     name = models.CharField(max_length=20, verbose_name='商品SPU名称')
-    detail = HTMLField(blank=True, verbose_name='商品详情')
+    detail = models.TextField(max_length=250, blank=True, verbose_name='商品详情')
 
     class Meta:
         db_table = 'df_goods'
         verbose_name = '商品SPU'
         verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.name
 
 
 class GoodsSKU(BaseModel):
@@ -53,6 +54,9 @@ class GoodsSKU(BaseModel):
         db_table = 'df_goods_sku'
         verbose_name = '商品'
         verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.name
 
 
 class GoodsImage(BaseModel):
@@ -109,3 +113,6 @@ class IndexPromotionBanner(BaseModel):
         db_table = 'df_index_promotion'
         verbose_name = '主页促销活动'
         verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.name

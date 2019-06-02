@@ -171,7 +171,7 @@ class UserInfoView(LoginRequiredMixin, View):
         # 用户的最近浏览
         conn = get_redis_connection('default')
 
-        history_key = 'hestory_%d' % user.id
+        history_key = 'history_%d' % user.id
 
         # 获取用户最新浏览的5个商品的id
         sku_ids = conn.lrange(history_key, 0, 4)

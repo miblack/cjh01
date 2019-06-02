@@ -26,7 +26,7 @@
 	<div class="center_con clearfix">
 		<ul class="subnav fl">
             {% for type in types %}
-			<li><a href="#model0{{ forloop.counter }}" class="fruit">{{ type.name }}</a></li>
+			<li><a href="#model0{{ forloop.counter }}" class="{{ type.logo }}">{{ type.name }}</a></li>
             {% endfor %}
 		</ul>
 		<div class="slide fl">
@@ -46,29 +46,34 @@
             {% endfor %}
 		</div>
 	</div>
+
     {% for type in types %}
 	<div class="list_model">
 		<div class="list_title clearfix">
 			<h3 class="fl" id="model0{{ forloop.counter }}">{{ type.name }}</h3>
+
 			<div class="subtitle fl">
 				<span>|</span>
                 {% for banner in type.title_banners %}
-				<a href="#">{{ banner.sku.name }}</a>
+				<a href="{% url 'goods:detail' banner.sku.id  %}">{{ banner.sku.name }}</a>
                 {% endfor %}
 			</div>
+
 			<a href="#" class="goods_more fr" id="fruit_more">查看更多 ></a>
 		</div>
 
 		<div class="goods_con clearfix">
 			<div class="goods_banner fl"><img src="{{ type.image.url }}"></div>
 			<ul class="goods_list fl">
+
                 {% for banner in type.image_banners%}
 				<li>
-					<h4><a href="#">{{ banner.sku.name }}</a></h4>
-					<a href="#"><img src="{{ banner.sku.image.url }}"></a>
+					<h4><a href="{% url 'goods:detail' banner.sku.id  %}">{{ banner.sku.name }}</a></h4>
+					<a href="{% url 'goods:detail' banner.sku.id  %}"><img src="{{ banner.sku.image.url }}"></a>
 					<div class="prize">¥ {{ banner.sku.price }}</div>
 				</li>
                 {% endfor %}
+
 			</ul>
 		</div>
 	</div>

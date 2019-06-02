@@ -24,11 +24,12 @@ class BaseAdmin(admin.ModelAdmin):
         cache.delete('index_page_data')
 
 
-admin.site.register(GoodsType)
+admin.site.register(Goods, BaseAdmin)
+admin.site.register(GoodsType, BaseAdmin)
 admin.site.register(IndexPromotionBanner, BaseAdmin)
 admin.site.register(GoodsImage, BaseAdmin)
 admin.site.register(IndexGoodsBanner, BaseAdmin)
 admin.site.register(IndexTypeGoodsBanner, BaseAdmin)
 admin.site.register(GoodsSKU, BaseAdmin)
-admin.site.register(Goods, BaseAdmin)
+
 
