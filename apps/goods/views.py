@@ -91,8 +91,6 @@ class DetailView(View):
             conn.lpush(history_key, goods_id)
             conn.ltrim(history_key, 0, 4)
 
-
-
         # 模板上下文
         content ={
             'sku': sku,
