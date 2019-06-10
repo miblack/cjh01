@@ -1,6 +1,8 @@
 {% extends 'base_user_center.html' %}
+{% load staticfiles %}
     {% block right_content %}
 		<div class="right_content clearfix">
+            {% csrf_token %}
 				<h3 class="common_title2">全部订单</h3>
             {% for order in order_page %}
 				<ul class="order_list_th w978 clearfix">
@@ -18,13 +20,13 @@
 									<li class="col01"><img src="{{ order_sku.sku.image.url }}"></li>
 									<li class="col02">{{ order_sku.sku.name }}<em>{{ order_sku.sku.price }}元/{{ order_sku.sku.unite }}</em></li>
 									<li class="col03">{{ order_sku.count }}</li>
-									<li class="col04">1{{ order_sku.amount }}元</li>
+									<li class="col04">{{ order_sku.amount }}元</li>
 								</ul>
                                 {% endfor %}
 							</td>
 							<td width="15%">{{ order.total_price|add:order.transit_price }}(含运费：{{ order.transit_price }})元</td>
 							<td width="15%">{{ order.status_name }}</td>
-							<td width="15%"><a href="#" class="oper_btn">去付款</a></td>
+							<td width="15%"><a href="#" order_id="{{ order.order_id }}" status="{{ order.order_status }}" class="oper_btn">去付款</a></td>
 						</tr>
 					</tbody>
 				</table>
@@ -50,3 +52,46 @@
 				</div>
 		</div>
     {% endblock right_content %}
+
+{% block bottomfiles %}
+    <script src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
+    <script>
+        $('.oper_btn').click(function () {
+            //获取status
+            status = $(this).attr('status')
+            if (status == 1){
+                // 去支付
+                // 获取order_id
+                order_id = $(this).attr('order_id')
+                csrf = $('input[name="csrfmiddlewaretoken"]').val()
+                //组织参数
+                params = {'order_id': order_id, 'csrfmiddlewaretoken': csrf}
+
+                // 发起ajax post 请求，传递参数order_id,csrfmiddlewaretoken
+                $.post('/order/pay', params, function (data) {
+                    if (data.res == 3){
+                        // 引导用户到支付界面
+                        window.open(data.pay_url)
+
+                        // 查询支付结果
+                        $.post('/order/check', params, function (data) {
+                            if (data.res == 3){
+                                // 支付成功
+                                alert('支付成功')
+                                location.reload()
+                            }
+                        })
+                    }
+                    else{
+                        // 订单失败
+                        alert(data.errmsg)
+                    }
+                })
+
+            }
+            else{
+                //其他情况
+            }
+        })
+    </script>
+{% endblock bottomfiles%}
